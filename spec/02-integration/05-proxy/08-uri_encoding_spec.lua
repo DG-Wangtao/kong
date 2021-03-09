@@ -48,7 +48,7 @@ for _, strategy in helpers.each_strategy() do
 
       local res = assert(proxy_client:send {
         method  = "GET",
-        path    = "/get?limit=25&where=%7B%22or%22:%5B%7B%22name%22:%7B%22like%22:%22%25bac%25%22%7D%7D%5D%7D",
+        path    = "/get?limit=25&where=%7B%22or%22:%5B%7B%22name%22:%7B%22like%22:%22%25%E4%B8%AD%E5%9B%BD%25%22%7D%7D%5D%7D",
         headers = {
           ["Host"] = "mock_upstream",
         },
@@ -58,7 +58,7 @@ for _, strategy in helpers.each_strategy() do
       local json = cjson.decode(body)
 
       assert.equal("25", json.uri_args.limit)
-      assert.equal([[{"or":[{"name":{"like":"%bac%"}}]}]], json.uri_args.where)
+      assert.equal([[{"or":[{"name":{"like":"%%E4%B8%AD%E5%9B%BD%"}}]}]], json.uri_args.where)
     end)
 
     it("issue #1480 does not percent-encode args unecessarily", function()
@@ -85,7 +85,7 @@ for _, strategy in helpers.each_strategy() do
 
       local res = assert(proxy_client:send {
         method  = "GET",
-        path    = "/request?param=abc%7Cdef",
+        path    = "/request?param=%E4%B8%AD%E5%9B%BD",
         headers = {
           ["Host"] = "mock_upstream",
         },
@@ -94,7 +94,7 @@ for _, strategy in helpers.each_strategy() do
       local body = assert.res_status(200, res)
       local json = cjson.decode(body)
 
-      assert.equal(helpers.mock_upstream_url .. "/request?param=abc%7Cdef", json.url)
+      assert.equal(helpers.mock_upstream_url .. "/request?param=%E4%B8%AD%E5%9B%BD", json.url)
     end)
 
     it("issue #688 does not percent-decode proxied URLs", function()
@@ -102,7 +102,7 @@ for _, strategy in helpers.each_strategy() do
 
       local res = assert(proxy_client:send {
         method  = "GET",
-        path    = "/request/foo%2Fbar",
+        path    = "/request/foo%2F%E4%B8%AD%E5%9B%BD",
         headers = {
           ["Host"] = "mock_upstream",
         },
@@ -111,7 +111,7 @@ for _, strategy in helpers.each_strategy() do
       local body = assert.res_status(200, res)
       local json = cjson.decode(body)
 
-      assert.equal(helpers.mock_upstream_url .. "/request/foo%2Fbar", json.url)
+      assert.equal(helpers.mock_upstream_url .. "/request/foo%2F%E4%B8%AD%E5%9B%BD", json.url)
     end)
 
     it("issue #2512 does not double percent-encode upstream URLs", function()
@@ -120,7 +120,7 @@ for _, strategy in helpers.each_strategy() do
       -- with `hosts` matching
       local res    = assert(proxy_client:send {
         method     = "GET",
-        path       = "/request/auth%2F123",
+        path       = "/request/auth/%E4%B8%AD%E5%9B%BD",
         headers    = {
           ["Host"] = "mock_upstream",
         },
@@ -129,29 +129,29 @@ for _, strategy in helpers.each_strategy() do
       local body = assert.res_status(200, res)
       local json = cjson.decode(body)
 
-      assert.matches("/request/auth%2F123", json.url, nil, true)
+      assert.matches("/request/auth/%E4%B8%AD%E5%9B%BD", json.url, nil, true)
 
       -- with `uris` matching
       local res2 = assert(proxy_client:send {
         method   = "GET",
-        path     = "/request/auth%2F123",
+        path     = "/request/auth/%E4%B8%AD%E5%9B%BD",
       })
 
       local body2 = assert.res_status(200, res2)
       local json2 = cjson.decode(body2)
 
-      assert.matches("/request/auth%2F123", json2.url, nil, true)
+      assert.matches("/request/auth/%E4%B8%AD%E5%9B%BD", json2.url, nil, true)
 
       -- with `uris` matching + `strip_uri`
       local res3 = assert(proxy_client:send {
         method   = "GET",
-        path     = "/stripped-path/request/auth%2F123",
+        path     = "/stripped-path/request/auth/%E4%B8%AD%E5%9B%BD",
       })
 
       local body3 = assert.res_status(200, res3)
       local json3 = cjson.decode(body3)
 
-      assert.matches("/request/auth%2F123", json3.url, nil, true)
+      assert.matches("/request/auth/%E4%B8%AD%E5%9B%BD", json3.url, nil, true)
     end)
   end)
 end
