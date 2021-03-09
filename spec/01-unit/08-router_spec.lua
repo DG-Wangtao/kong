@@ -2498,6 +2498,24 @@ describe("Router", function()
       assert.equal("/endel%2Fst", match_t.upstream_uri)
     end)
 
+    it("allows chinese string encoded paths if they are reserved characters", function()
+      local use_case_routes = {
+        {
+          service = service,
+          route   = {
+            paths = { "/%E4%B8%AD%E5%9B%BD" },
+          },
+        },
+      }
+
+      local router = assert(Router.new(use_case_routes))
+      local _ngx = mock_ngx("GET", "/%E4%B8%AD%E5%9B%BD", { host = "domain.org" })
+      router._set_ngx(_ngx)
+      local match_t = router.exec()
+      assert.same(use_case_routes[1].route, match_t.route)
+      assert.equal("/%E4%B8%AD%E5%9B%BD", match_t.upstream_uri)
+    end)
+
     describe("stripped paths #strip", function()
       local router
       local use_case_routes = {
